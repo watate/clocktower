@@ -7,7 +7,8 @@ import { EntityHoverPreview, EntityInlineLink, EntityPanel, InvocationPanel, ren
 import { behaviorsRenderers } from "fxtr-view-behaviors";
 import { GameHoverPreview, GameInlineLink, GamePanel } from "./game";
 import { GamesOverview } from "./overview";
-import { GAME, INDEX_WORKFLOW, PLAY_WORKFLOW } from "./types";
+import { SummariesOverview, SummaryHoverPreview, SummaryInlineLink, SummaryPanel } from "./summary";
+import { GAME, GAME_SUMMARY, INDEX_WORKFLOW, PLAY_WORKFLOW, SUMMARIES_WORKFLOW } from "./types";
 
 const bundle: ViewBundle = {
   renderers: [
@@ -18,6 +19,10 @@ const bundle: ViewBundle = {
     renderer(EntityHoverPreview, GAME, "clocktower-fxtr.GameHoverPreview", GameHoverPreview),
     renderer(InvocationPanel, INDEX_WORKFLOW, "clocktower-fxtr.GamesOverview", GamesOverview),
     renderer(InvocationPanel, PLAY_WORKFLOW, "clocktower-fxtr.PlayOverview", GamesOverview),
+    renderer(EntityPanel, GAME_SUMMARY, "clocktower-fxtr.SummaryPanel", SummaryPanel),
+    renderer(EntityInlineLink, GAME_SUMMARY, "clocktower-fxtr.SummaryInlineLink", SummaryInlineLink),
+    renderer(EntityHoverPreview, GAME_SUMMARY, "clocktower-fxtr.SummaryHoverPreview", SummaryHoverPreview),
+    renderer(InvocationPanel, SUMMARIES_WORKFLOW, "clocktower-fxtr.SummariesOverview", SummariesOverview),
   ],
 };
 

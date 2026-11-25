@@ -79,3 +79,23 @@ export interface GameSetData extends EntityData {
   readonly games: EntityID<ArrayData>;
   readonly stats: EntityID<ArrayData>;
 }
+
+export const GAME_SUMMARY = "local.clocktower_fxtr.GameSummary.v1";
+export const SUMMARIES_WORKFLOW = "clocktower.summaries";
+
+/** One statement of a summary and the `seq` of each event that shows it. */
+export type ClaimData = { readonly text: string; readonly events: readonly number[] };
+
+export interface GameSummaryData extends EntityData {
+  readonly game: EntityID<GameData>;
+  readonly why_picked: string;
+  readonly model: string;
+  readonly headline: ClaimData;
+  readonly story: readonly { readonly title: string; readonly claims: readonly ClaimData[] }[];
+  readonly decisive: readonly ClaimData[];
+  readonly notable: readonly ClaimData[];
+  readonly dropped_citations: readonly number[];
+  readonly input_tokens: number;
+  readonly output_tokens: number;
+  readonly cost_usd: number | null;
+}

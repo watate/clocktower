@@ -3,7 +3,7 @@
 // see everything (the Storyteller's view, with every seat's thinking) or the game as one seat saw
 // it, and fold away thinking, whispers, or individual votes.
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { EntityLink, unwrap, useEntity, type EntityID, type EntityPanelProps, type EntityViewProps } from "fxtr-view";
 import { Kind, Legend, Segmented, Select, formatNumber, layout, useStoredState } from "fxtr-view-kit";
 import { type GameData, type GameEvent, type SeatData } from "./types";
@@ -43,7 +43,7 @@ function fates(events: readonly GameEvent[]): Map<string, string> {
   return out;
 }
 
-function Name({ name, team }: { name: string; team: Map<string, "good" | "evil"> }) {
+export function Name({ name, team }: { name: string; team: Map<string, "good" | "evil"> }) {
   const t = team.get(name);
   return (
     <span className={styles.name} style={t ? { color: TEAM_COLOR[t] } : undefined}>
@@ -74,7 +74,7 @@ function Line({ kind, children, text }: { kind: string; children: ReactNode; tex
   );
 }
 
-function Event({ e, team, showThinking }: { e: GameEvent; team: Map<string, "good" | "evil">; showThinking: boolean }) {
+export function Event({ e, team, showThinking }: { e: GameEvent; team: Map<string, "good" | "evil">; showThinking: boolean }) {
   const d = e.data;
   const N = (n: unknown) => <Name name={str(n)} team={team} />;
   switch (e.kind) {
@@ -202,9 +202,41 @@ function SeatTable({ game, fate }: { game: GameData; fate: Map<string, string> }
   );
 }
 
+export function teamsOf(game: GameData): Map<string, "good" | "evil"> {
+  return new Map(game.seats.map((s: SeatData) => [s.name, s.team] as const));
+}
+
+/** The result line under a game's title: the models of each side and who won. */
+export function GameResult({ game }: { game: GameData }) {
+  return (
+    <div className={styles.result}>
+      <span style={{ color: TEAM_COLOR.good }}>{game.good_model}</span> <span className={styles.dim}>(good) vs</span>{" "}
+      <span style={{ color: TEAM_COLOR.evil }}>{game.evil_model}</span> <span className={styles.dim}>(evil)</span>
+      {" · "}
+      {game.winner ? <b style={{ color: TEAM_COLOR[game.winner as "good" | "evil"] }}>{game.winner} wins</b> : "unfinished"}
+      {game.reason ? <span className={styles.dim}> · {game.reason}</span> : null}
+    </div>
+  );
+}
+
 export function GamePanel({ id, storage }: EntityPanelProps) {
   const game = unwrap(useEntity(id as EntityID<GameData>));
-  const team = new Map(game.seats.map((s: SeatData) => [s.name, s.team] as const));
+  return (
+    <div className={layout.panel}>
+      <div className={layout.kindLine}>
+        <Kind>Game</Kind>
+      </div>
+      <div className={layout.title}>{game.game_id}</div>
+      <GameResult game={game} />
+      <GameReader game={game} storage={storage} />
+    </div>
+  );
+}
+
+/** The seats and every event of a game, with the reader's controls. `focus` is an event's seq to
+ *  scroll to and mark (shown whatever the filters hide). */
+export function GameReader({ game, storage, focus = null }: { game: GameData; storage: EntityPanelProps["storage"]; focus?: number | null }) {
+  const team = teamsOf(game);
   const [view, setView] = useStoredState<string>(storage, "view", EVERYONE);
   const [show, setShow] = useStoredState<Show>(storage, "show", "all", (v): v is Show => v === "all" || v === "talk");
   const [thinking, setThinking] = useStoredState<"open" | "folded" | "hidden">(storage, "thinking", "folded");
@@ -212,7 +244,12 @@ export function GamePanel({ id, storage }: EntityPanelProps) {
   const seat = game.seats.some((s) => s.name === view) ? view : EVERYONE;
   const fate = fates(game.events);
 
+  useEffect(() => {
+    if (focus !== null) document.getElementById(`clocktower-event-${focus}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [focus]);
+
   const events = game.events.filter((e) => {
+    if (e.seq === focus) return true;
     if (seat !== EVERYONE && !visibleTo(e, seat)) return false;
     if (e.kind === "thinking") return thinking !== "hidden";
     if (e.kind === "vote") return votes === "each" || str(e.data["text"]) !== "";
@@ -229,22 +266,7 @@ export function GamePanel({ id, storage }: EntityPanelProps) {
   const me = game.seats.find((s) => s.name === seat);
 
   return (
-    <div className={layout.panel}>
-      <div className={layout.kindLine}>
-        <Kind>Game</Kind>
-      </div>
-      <div className={layout.title}>{game.game_id}</div>
-      <div className={styles.result}>
-        <span style={{ color: TEAM_COLOR.good }}>{game.good_model}</span> <span className={styles.dim}>(good) vs</span>{" "}
-        <span style={{ color: TEAM_COLOR.evil }}>{game.evil_model}</span> <span className={styles.dim}>(evil)</span>
-        {" · "}
-        {game.winner ? (
-          <b style={{ color: TEAM_COLOR[game.winner as "good" | "evil"] }}>{game.winner} wins</b>
-        ) : (
-          "unfinished"
-        )}
-        {game.reason ? <span className={styles.dim}> · {game.reason}</span> : null}
-      </div>
+    <>
       <div className={layout.muted}>
         {game.days} days · {game.players} players · minion {game.minion ?? "by seed"} · Demon's bluffs {game.bluffs.join(", ")} · seed {game.seed} ·{" "}
         {game.protocol} · ${formatNumber(game.cost, 2)}
@@ -282,11 +304,13 @@ export function GamePanel({ id, storage }: EntityPanelProps) {
           <section key={i} className={styles.section}>
             <div className={styles.header}>{s.title}</div>
             {s.events.map((e) => (
-              <Event key={e.seq} e={e} team={team} showThinking={thinking === "open"} />
+              <div key={e.seq} id={`clocktower-event-${e.seq}`} className={styles.anchor} data-focus={e.seq === focus}>
+                <Event e={e} team={team} showThinking={thinking === "open" || e.seq === focus} />
+              </div>
             ))}
           </section>
         ))}
-    </div>
+    </>
   );
 }
 

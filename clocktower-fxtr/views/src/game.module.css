@@ -32,3 +32,6 @@
 .thinking { padding: 3px 0 3px 8px; border-bottom: 1px solid var(--line-soft); border-left: 2px dotted var(--line); color: var(--fg-dim); }
 .thinking > summary { cursor: pointer; }
 .thinking .text { color: var(--fg-dim); font-style: italic; }
+
+.anchor { scroll-margin-top: 40px; }
+.anchor[data-focus="true"] { outline: 2px solid var(--accent, var(--chart-4)); outline-offset: -2px; border-radius: 2px; }

@@ -1,0 +1,38 @@
+.headline { font-size: var(--text-lg, 1.1em); line-height: 1.5; margin: 10px 0; }
+.day { font-weight: 600; color: var(--fg-dim); margin-top: 10px; }
+.claims { margin: 4px 0 0; padding-left: 20px; line-height: 1.55; }
+.claims li { margin: 3px 0; }
+
+.cite { position: relative; display: inline-block; margin-right: 3px; }
+.chip {
+  font: inherit;
+  font-family: var(--font-mono);
+  font-size: 0.75em;
+  line-height: 1;
+  padding: 2px 4px;
+  border: 1px solid var(--line-strong);
+  border-radius: 3px;
+  background: var(--muted-bg);
+  color: var(--fg-dim);
+  cursor: pointer;
+  vertical-align: 1px;
+}
+.chip:hover, .chip:focus-visible { background: var(--hover); color: var(--fg); }
+.pop {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: calc(100% + 4px);
+  z-index: 10;
+  width: min(480px, 80vw);
+  max-height: 320px;
+  overflow: auto;
+  padding: 6px 8px;
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.15);
+  font-size: var(--text-sm);
+  text-align: left;
+}
+.cite:hover .pop, .chip:focus-visible + .pop { display: block; }
