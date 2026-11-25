@@ -5,7 +5,7 @@
 
 import { EntityHoverPreview, EntityInlineLink, EntityPanel, InvocationPanel, renderer, type ViewBundle } from "fxtr-view";
 import { behaviorsRenderers } from "fxtr-view-behaviors";
-import { GameHoverPreview, GameInlineLink, GamePanel } from "./game";
+import { GAME_PANEL, GameHoverPreview, GameInlineLink, GamePanel } from "./game";
 import { GamesOverview } from "./overview";
 import { SummariesOverview, SummaryHoverPreview, SummaryInlineLink, SummaryPanel } from "./summary";
 import { GAME, GAME_SUMMARY, INDEX_WORKFLOW, PLAY_WORKFLOW, SUMMARIES_WORKFLOW } from "./types";
@@ -14,7 +14,7 @@ const bundle: ViewBundle = {
   renderers: [
     // Each seat's conversation is a behaviors AgentRun.
     ...behaviorsRenderers,
-    renderer(EntityPanel, GAME, "clocktower-fxtr.GamePanel", GamePanel),
+    renderer(GAME_PANEL, GamePanel),
     renderer(EntityInlineLink, GAME, "clocktower-fxtr.GameInlineLink", GameInlineLink),
     renderer(EntityHoverPreview, GAME, "clocktower-fxtr.GameHoverPreview", GameHoverPreview),
     renderer(InvocationPanel, INDEX_WORKFLOW, "clocktower-fxtr.GamesOverview", GamesOverview),

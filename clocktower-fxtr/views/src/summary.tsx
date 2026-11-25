@@ -1,8 +1,8 @@
 // A model's summary of a game with citations. Each claim ends with the numbers of the events that
-// show it: hover one to read the event, press it to jump to the event in the game below, which is
-// marked and shown whatever the reader's filters hide.
+// show it: hover one to read the event, press it to open the game beside the summary, scrolled to
+// the event, which is marked and shown whatever the reader's filters hide.
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   EntityDataError,
   EntityLink,
@@ -11,6 +11,7 @@ import {
   rowsOf,
   unwrap,
   useEntity,
+  useEntityLinks,
   useInvocation,
   type ArrayData,
   type EntityID,
@@ -26,15 +27,82 @@ import styles from "./summary.module.css";
 
 type Team = Map<string, "good" | "evil">;
 
+// The card is a manual popover, so it shows in the browser's top layer. There, the panel's
+// scroll box does not clip it. The card opens below the chip, or above it when the space below
+// is too small. It stays inside the window. It closes when the page scrolls or resizes, because
+// a card in the top layer does not move with the chip.
+const GAP = 4;
+const EDGE = 8;
+const HIDE_DELAY_MS = 120;
+
+function placeCard(chip: HTMLElement, card: HTMLElement) {
+  const r = chip.getBoundingClientRect();
+  const w = card.offsetWidth;
+  const h = card.offsetHeight;
+  const left = Math.max(EDGE, Math.min(r.left, window.innerWidth - w - EDGE));
+  const below = r.bottom + GAP;
+  const top = below + h <= window.innerHeight - EDGE ? below : Math.max(EDGE, r.top - GAP - h);
+  card.style.left = `${left}px`;
+  card.style.top = `${top}px`;
+}
+
 function Cite({ seq, event, team, onPick }: { seq: number; event: GameEvent | undefined; team: Team; onPick: (seq: number) => void }) {
+  const chip = useRef<HTMLButtonElement>(null);
+  const card = useRef<HTMLSpanElement>(null);
+  const hideTimer = useRef<number | undefined>(undefined);
+  const [open, setOpen] = useState(false);
+
+  const show = () => {
+    window.clearTimeout(hideTimer.current);
+    setOpen(true);
+  };
+  const hide = () => {
+    window.clearTimeout(hideTimer.current);
+    hideTimer.current = window.setTimeout(() => setOpen(false), HIDE_DELAY_MS);
+  };
+
+  useLayoutEffect(() => {
+    const c = card.current;
+    if (!open || !c || !chip.current) return;
+    c.showPopover();
+    placeCard(chip.current, c);
+    const close = (e: globalThis.Event) => {
+      if (!c.contains(e.target as Node)) setOpen(false);
+    };
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("resize", close);
+    return () => {
+      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("resize", close);
+      if (c.matches(":popover-open")) c.hidePopover();
+    };
+  }, [open]);
+
+  useEffect(() => () => window.clearTimeout(hideTimer.current), []);
+
+  const pick = () => {
+    window.clearTimeout(hideTimer.current);
+    setOpen(false);
+    onPick(seq);
+  };
+
   return (
-    <span className={styles.cite}>
-      <button type="button" className={styles.chip} onClick={() => onPick(seq)} aria-label={`go to event ${seq}`}>
+    <span className={styles.cite} onMouseEnter={event && show} onMouseLeave={event && hide}>
+      <button
+        ref={chip}
+        type="button"
+        className={styles.chip}
+        onClick={pick}
+        onFocus={event && show}
+        onBlur={event && hide}
+        aria-label={`open event ${seq} in the game`}
+      >
         {seq}
       </button>
       {event && (
-        <span className={styles.pop} role="tooltip">
-          <Event e={event} team={team} showThinking />
+        // React 18's types lack the `popover` attribute, so it goes in through a spread.
+        <span ref={card} className={styles.pop} role="tooltip" {...({ popover: "manual" } as object)}>
+          {open && <Event e={event} team={team} showThinking />}
         </span>
       )}
     </span>
@@ -68,9 +136,9 @@ function Claims({ claims, ...rest }: { claims: readonly ClaimData[]; events: Map
 export function SummaryPanel({ id, storage }: EntityPanelProps) {
   const summary = unwrap(useEntity(id as EntityID<GameSummaryData>));
   const game = unwrap(useEntity(summary.game)) as GameData;
-  const [focus, setFocus] = useState<number | null>(null);
+  const links = useEntityLinks();
   const events = new Map(game.events.map((e) => [e.seq, e] as const));
-  const ctx = { events, team: teamsOf(game), onPick: setFocus };
+  const ctx = { events, team: teamsOf(game), onPick: (seq: number) => links.open(summary.game, { event: seq }) };
 
   return (
     <div className={layout.panel}>
@@ -81,7 +149,7 @@ export function SummaryPanel({ id, storage }: EntityPanelProps) {
       <GameResult game={game} />
       <p className={layout.muted}>
         Picked because: {summary.why_picked} Written by {summary.model}. Numbers are the events each claim rests on: hover to
-        read one, press to jump to it in the game below.
+        read one, press to open it in the game beside this summary.
       </p>
 
       <p className={styles.headline}>
@@ -114,7 +182,7 @@ export function SummaryPanel({ id, storage }: EntityPanelProps) {
       <p className={layout.muted}>
         <EntityLink id={summary.game} />
       </p>
-      <GameReader game={game} storage={storage} focus={focus} />
+      <GameReader game={game} storage={storage} />
     </div>
   );
 }

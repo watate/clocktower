@@ -3,11 +3,25 @@
 // see everything (the Storyteller's view, with every seat's thinking) or the game as one seat saw
 // it, and fold away thinking, whispers, or individual votes.
 
-import { useEffect, type ReactNode } from "react";
-import { EntityLink, unwrap, useEntity, type EntityID, type EntityPanelProps, type EntityViewProps } from "fxtr-view";
+import { useEffect, useRef, type ReactNode } from "react";
+import {
+  EntityLink,
+  EntityPanel,
+  declareView,
+  unwrap,
+  useEntity,
+  type EntityID,
+  type EntityPanelProps,
+  type EntityViewProps,
+  type ViewProps,
+} from "fxtr-view";
 import { Kind, Legend, Segmented, Select, formatNumber, layout, useStoredState } from "fxtr-view-kit";
-import { type GameData, type GameEvent, type SeatData } from "./types";
+import { GAME, type GameData, type GameEvent, type SeatData } from "./types";
 import styles from "./game.module.css";
+
+/** The game's panel. A link that binds `event` (an event's seq) opens the game scrolled to that
+ *  event, and marks it. */
+export const GAME_PANEL = declareView(EntityPanel, GAME, "clocktower-fxtr.GamePanel", { params: ["event"] });
 
 export const TEAM_COLOR = { good: "var(--chart-1)", evil: "var(--chart-8)" } as const;
 
@@ -219,8 +233,9 @@ export function GameResult({ game }: { game: GameData }) {
   );
 }
 
-export function GamePanel({ id, storage }: EntityPanelProps) {
+export function GamePanel({ id, storage, params }: ViewProps<typeof GAME_PANEL>) {
   const game = unwrap(useEntity(id as EntityID<GameData>));
+  const focus = typeof params?.event === "number" ? params.event : null;
   return (
     <div className={layout.panel}>
       <div className={layout.kindLine}>
@@ -228,9 +243,20 @@ export function GamePanel({ id, storage }: EntityPanelProps) {
       </div>
       <div className={layout.title}>{game.game_id}</div>
       <GameResult game={game} />
-      <GameReader game={game} storage={storage} />
+      <GameReader game={game} storage={storage} focus={focus} />
     </div>
   );
+}
+
+/** Centre `element` in the nearest box that scrolls it up and down. `scrollIntoView` is not
+ *  used, because it scrolls every box around the element, sideways too, and so moves the
+ *  viewer's panes. */
+function centreInPane(element: HTMLElement): void {
+  let pane = element.parentElement;
+  while (pane && !(/(auto|scroll)/.test(getComputedStyle(pane).overflowY) && pane.scrollHeight > pane.clientHeight)) pane = pane.parentElement;
+  if (!pane) return;
+  const top = element.getBoundingClientRect().top - pane.getBoundingClientRect().top + pane.scrollTop;
+  pane.scrollTo({ top: top - Math.max(0, (pane.clientHeight - element.offsetHeight) / 2), behavior: "smooth" });
 }
 
 /** The seats and every event of a game, with the reader's controls. `focus` is an event's seq to
@@ -244,8 +270,17 @@ export function GameReader({ game, storage, focus = null }: { game: GameData; st
   const seat = game.seats.some((s) => s.name === view) ? view : EVERYONE;
   const fate = fates(game.events);
 
+  // A ref, not a document id: two readers of one game can be on the page at once.
+  const focused = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (focus !== null) document.getElementById(`clocktower-event-${focus}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+    const element = focused.current;
+    if (focus === null || !element) return;
+    // A pane that is just opening lays its content out over its first moments. A scroll made
+    // before then goes nowhere, so the scroll is made again until the pane has settled.
+    const scroll = () => centreInPane(element);
+    scroll();
+    const timers = [50, 200, 500].map((delay) => setTimeout(scroll, delay));
+    return () => timers.forEach(clearTimeout);
   }, [focus]);
 
   const events = game.events.filter((e) => {
@@ -304,7 +339,7 @@ export function GameReader({ game, storage, focus = null }: { game: GameData; st
           <section key={i} className={styles.section}>
             <div className={styles.header}>{s.title}</div>
             {s.events.map((e) => (
-              <div key={e.seq} id={`clocktower-event-${e.seq}`} className={styles.anchor} data-focus={e.seq === focus}>
+              <div key={e.seq} ref={e.seq === focus ? focused : undefined} className={styles.anchor} data-focus={e.seq === focus}>
                 <Event e={e} team={team} showThinking={thinking === "open" || e.seq === focus} />
               </div>
             ))}

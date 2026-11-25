@@ -25,3 +25,14 @@ The overview counts, for each pairing of a good model and an evil model, how oft
 and per game how many good and evil players the town executed: executing good players is the
 town's main mistake, and the day the first evil player was executed shows how fast the town
 found evil.
+
+## Summaries with citations
+
+`clocktower.summaries` (launched by `summarize.py`) has Claude Opus 5.5, at medium effort, read
+ten chosen games, with every event numbered, and write a summary of each: a headline, the story
+day by day, why the winning side won, and notable behavior (deception, reasoning, blunders,
+false information from drunk or poisoned players). Every claim cites the events that show it.
+In the viewer, hovering a citation shows the event, and pressing it scrolls the game below the
+summary to that event. The instructions are in `prompts/summary.md`. The ten games are listed in
+`summarize.py` with the reason each was picked: five good wins and five evil wins, chosen for the
+ways games end (a Slayer shot, the Saint executed, a Mayor win, a final-two win).
