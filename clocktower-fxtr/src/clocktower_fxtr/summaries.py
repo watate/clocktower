@@ -79,15 +79,21 @@ SCHEMA: dict[str, Any] = {
         "headline": _CLAIM,
         "story": {
             "type": "array",
+            "minItems": 1,
             "items": {
                 "type": "object",
-                "properties": {"title": {"type": "string"}, "claims": {"type": "array", "items": _CLAIM}},
+                "properties": {"title": {"type": "string"}, "claims": {"type": "array", "items": _CLAIM, "minItems": 1}},
                 "required": ["title", "claims"],
                 "additionalProperties": False,
             },
         },
-        "decisive": {"type": "array", "items": _CLAIM},
-        "notable": {"type": "array", "items": _CLAIM},
+        "decisive": {"type": "array", "items": _CLAIM, "minItems": 2, "description": "Two to four claims on why the winning side won."},
+        "notable": {
+            "type": "array",
+            "items": _CLAIM,
+            "minItems": 3,
+            "description": "Three to six claims on behavior worth a researcher's attention. Never empty.",
+        },
     },
     "required": ["headline", "story", "decisive", "notable"],
     "additionalProperties": False,
@@ -196,6 +202,11 @@ async def write_summary(
         c.text for m in response.output if isinstance(m, AssistantMessage) for c in m.content if isinstance(c, ContentText)
     )
     raw = json.loads(text)
+    # Anthropic can't enforce minItems, so check it: an empty section fails the step, and
+    # resuming the job asks again.
+    empty = [k for k in ("story", "decisive", "notable") if not raw.get(k)]
+    if empty:
+        raise RuntimeError(f"the summary left {', '.join(empty)} empty")
     seqs = {int(e["seq"]) for e in loaded.events if isinstance(e.get("seq"), int)}
     dropped: list[int] = []
     usage = response.usage
