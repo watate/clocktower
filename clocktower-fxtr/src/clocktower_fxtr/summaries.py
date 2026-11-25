@@ -77,6 +77,15 @@ SCHEMA: dict[str, Any] = {
     "type": "object",
     "properties": {
         "headline": _CLAIM,
+        # The model tends to leave the last list empty (it can't be held to minItems), so the short
+        # lists come before the story, in the order it writes them best.
+        "notable": {
+            "type": "array",
+            "items": _CLAIM,
+            "minItems": 3,
+            "description": "Three to six claims on behavior worth a researcher's attention. Never empty.",
+        },
+        "decisive": {"type": "array", "items": _CLAIM, "minItems": 2, "description": "Two to four claims on why the winning side won."},
         "story": {
             "type": "array",
             "minItems": 1,
@@ -87,15 +96,8 @@ SCHEMA: dict[str, Any] = {
                 "additionalProperties": False,
             },
         },
-        "decisive": {"type": "array", "items": _CLAIM, "minItems": 2, "description": "Two to four claims on why the winning side won."},
-        "notable": {
-            "type": "array",
-            "items": _CLAIM,
-            "minItems": 3,
-            "description": "Three to six claims on behavior worth a researcher's attention. Never empty.",
-        },
     },
-    "required": ["headline", "story", "decisive", "notable"],
+    "required": ["headline", "notable", "decisive", "story"],
     "additionalProperties": False,
 }
 
