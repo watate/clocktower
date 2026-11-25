@@ -9,3 +9,5 @@ __pycache__/
 # The renderer package's installed dependencies and its built bundle.
 node_modules/
 dist/
+# Game logs downloaded from the Hugging Face dataset by load.py.
+data/

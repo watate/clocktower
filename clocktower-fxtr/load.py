@@ -1,7 +1,8 @@
 """Import clocktower games into fxtr: `uv run python load.py 'v17/f7-*' ['v17/f6*' ...] [--name NAME]`.
 
 Downloads the matching game folders from the Hugging Face dataset `dwarkesh/clocktower-games` into
-the repository's `games/` (as `python -m clocktower fetch` does; `--no-fetch` uses what is there),
+`data/` (gitignored; not the repository's `games/`, whose tracked files a download would disturb;
+`--no-fetch` uses what is there),
 converts each finished game into a `Game` with each seat's conversation, stores them in the
 project array `games_<name>` keyed by [batch, game], and runs `clocktower.index` on a snapshot of
 it so the games can be read in the viewer.
@@ -21,7 +22,7 @@ from fxtr.project.running import open_local_client, run_job
 from clocktower_fxtr.convert import read_game
 from clocktower_fxtr.games import Game, build_game, index
 
-GAMES = Path(__file__).resolve().parent.parent / "games"
+GAMES = Path(__file__).resolve().parent / "data"
 REPO = "dwarkesh/clocktower-games"
 
 
