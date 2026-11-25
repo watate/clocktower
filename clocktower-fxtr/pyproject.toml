@@ -1,0 +1,40 @@
+[project]
+name = "clocktower-fxtr"
+version = "0.1.0"
+description = "Blood on the Clocktower LLM games in fxtr: import, play, and read them"
+requires-python = ">=3.12.4"
+dependencies = [
+    "fxtr[runner,debug-web]",
+    "behaviors[models]",
+    "clocktower",
+    "huggingface_hub>=0.30",
+]
+
+[tool.uv]
+# Installed (editably) into its own venv, so the `fxtr` command, which has no project directory on
+# its path, can import the modules [tool.fxtr] lists.
+package = true
+
+[tool.uv.sources]
+# The project depends on a checkout of fxtr, by path.
+fxtr = { path = "/Users/walter-transluce/Documents/GitHub/fxtr3/fxtr", editable = true }
+behaviors = { path = "/Users/walter-transluce/Documents/GitHub/fxtr3/behaviors", editable = true }
+# The game engine: the repository this project sits in.
+clocktower = { path = "..", editable = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/clocktower_fxtr"]
+
+[tool.fxtr]
+# The modules whose import registers the project's steps and workflows: what a process with no
+# script of its own (a resume, the CLI, the viewer) imports.
+modules = ["clocktower_fxtr.games"]
+
+[tool.fxtr.views]
+# The project's renderer package (views/): `fxtr views build` builds it into views/dist, which the
+# viewer serves.
+package = "views"

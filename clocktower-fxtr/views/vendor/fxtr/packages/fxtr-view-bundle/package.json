@@ -1,0 +1,13 @@
+{
+  "name": "fxtr-view-bundle",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The Vite preset a project's renderer package builds its bundle with: the factory module, the stylesheet, and the manifest the fxtr viewer loads.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "peerDependencies": {
+    "vite": "^6.3.5"
+  }
+}

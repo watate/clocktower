@@ -1,0 +1,14 @@
+.scroll { overflow-x: auto; }
+.model { font-family: var(--font-mono); font-size: var(--text-sm); white-space: nowrap; }
+.head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.clear {
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--fg-dim);
+  background: none;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+.clear:hover { background: var(--hover); }

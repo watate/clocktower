@@ -1,0 +1,15 @@
+{
+  "name": "fxtr-view",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The shared library fxtr renderer code imports: entity ids and data, the Array and invocation shapes, view slots, renderer declarations, the shell context, and links.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./view_bundle": "./src/view_bundle.ts"
+  },
+  "peerDependencies": {
+    "jotai": "^2.10.0",
+    "react": "^18.3.1"
+  }
+}

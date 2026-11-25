@@ -1,0 +1,4 @@
+{
+  "extends": "./vendor/fxtr/tsconfig.base.json",
+  "include": ["src", "vite.config.ts"]
+}

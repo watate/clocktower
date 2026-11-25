@@ -1,0 +1,14 @@
+{
+  "name": "fxtr-view-behaviors",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Conversation views for behaviors rollouts, transcripts, and agent runs.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "peerDependencies": {
+    "jotai": "^2.10.0",
+    "react": "^18.3.1"
+  }
+}

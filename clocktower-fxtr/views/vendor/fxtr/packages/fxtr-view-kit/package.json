@@ -1,0 +1,14 @@
+{
+  "name": "fxtr-view-kit",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Building blocks for fxtr renderer authors: the kind label, field lists, chat message lists, invocation heads and outcomes, the one-invocation and each-invocation adapters, LoadEach, a sortable and filterable data table, chart frames, legends, chart colours, controls, number formatting, stored UI state, and small text helpers.",
+  "exports": {
+    ".": "./src/index.tsx"
+  },
+  "peerDependencies": {
+    "jotai": "^2.10.0",
+    "react": "^18.3.1"
+  }
+}
