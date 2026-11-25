@@ -32,7 +32,7 @@ packages = ["src/clocktower_fxtr"]
 [tool.fxtr]
 # The modules whose import registers the project's steps and workflows: what a process with no
 # script of its own (a resume, the CLI, the viewer) imports.
-modules = ["clocktower_fxtr.games"]
+modules = ["clocktower_fxtr.games", "clocktower_fxtr.summaries"]
 default_remote = "hub"
 
 [tool.fxtr.views]
