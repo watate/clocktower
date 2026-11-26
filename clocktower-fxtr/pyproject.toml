@@ -6,6 +6,8 @@ requires-python = ">=3.12.4"
 dependencies = [
     "fxtr[runner,debug-web]",
     "behaviors[models]",
+    # behaviors.judging needs jsonschema, which behaviors otherwise installs only with its docent extra.
+    "jsonschema>=4.0",
     "clocktower",
     "huggingface_hub>=0.30",
 ]
@@ -17,8 +19,8 @@ package = true
 
 [tool.uv.sources]
 # The project depends on a checkout of fxtr, by path.
-fxtr = { path = "/Users/walter-transluce/Documents/GitHub/fxtr3/fxtr", editable = true }
-behaviors = { path = "/Users/walter-transluce/Documents/GitHub/fxtr3/behaviors", editable = true }
+fxtr = { path = "/Users/walter-transluce/Documents/GitHub/fxtr3-ee/fxtr", editable = true }
+behaviors = { path = "/Users/walter-transluce/Documents/GitHub/fxtr3-ee/behaviors", editable = true }
 # The game engine: the repository this project sits in.
 clocktower = { path = "..", editable = true }
 
@@ -32,7 +34,7 @@ packages = ["src/clocktower_fxtr"]
 [tool.fxtr]
 # The modules whose import registers the project's steps and workflows: what a process with no
 # script of its own (a resume, the CLI, the viewer) imports.
-modules = ["clocktower_fxtr.games", "clocktower_fxtr.summaries"]
+modules = ["clocktower_fxtr.games", "clocktower_fxtr.summaries", "clocktower_fxtr.cited"]
 default_remote = "hub"
 
 [tool.fxtr.views]
