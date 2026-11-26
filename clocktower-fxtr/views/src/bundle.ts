@@ -6,9 +6,10 @@
 import { EntityHoverPreview, EntityInlineLink, EntityPanel, InvocationPanel, renderer, type ViewBundle } from "fxtr-view";
 import { behaviorsRenderers } from "fxtr-view-behaviors";
 import { GAME_PANEL, GameHoverPreview, GameInlineLink, GamePanel } from "./game";
+import { CitedSummariesOverview, CitedSummaryHoverPreview, CitedSummaryInlineLink, CitedSummaryPanel } from "./cited";
 import { GamesOverview } from "./overview";
 import { SummariesOverview, SummaryHoverPreview, SummaryInlineLink, SummaryPanel } from "./summary";
-import { GAME, GAME_SUMMARY, INDEX_WORKFLOW, PLAY_WORKFLOW, SUMMARIES_WORKFLOW } from "./types";
+import { CITED_SUMMARIES_WORKFLOW, CITED_SUMMARY, GAME, GAME_SUMMARY, INDEX_WORKFLOW, PLAY_WORKFLOW, SUMMARIES_WORKFLOW } from "./types";
 
 const bundle: ViewBundle = {
   renderers: [
@@ -23,6 +24,10 @@ const bundle: ViewBundle = {
     renderer(EntityInlineLink, GAME_SUMMARY, "clocktower-fxtr.SummaryInlineLink", SummaryInlineLink),
     renderer(EntityHoverPreview, GAME_SUMMARY, "clocktower-fxtr.SummaryHoverPreview", SummaryHoverPreview),
     renderer(InvocationPanel, SUMMARIES_WORKFLOW, "clocktower-fxtr.SummariesOverview", SummariesOverview),
+    renderer(EntityPanel, CITED_SUMMARY, "clocktower-fxtr.CitedSummaryPanel", CitedSummaryPanel),
+    renderer(EntityInlineLink, CITED_SUMMARY, "clocktower-fxtr.CitedSummaryInlineLink", CitedSummaryInlineLink),
+    renderer(EntityHoverPreview, CITED_SUMMARY, "clocktower-fxtr.CitedSummaryHoverPreview", CitedSummaryHoverPreview),
+    renderer(InvocationPanel, CITED_SUMMARIES_WORKFLOW, "clocktower-fxtr.CitedSummariesOverview", CitedSummariesOverview),
   ],
 };
 

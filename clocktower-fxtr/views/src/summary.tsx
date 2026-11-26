@@ -46,7 +46,9 @@ function placeCard(chip: HTMLElement, card: HTMLElement) {
   card.style.top = `${top}px`;
 }
 
-function Cite({ seq, event, team, onPick }: { seq: number; event: GameEvent | undefined; team: Team; onPick: (seq: number) => void }) {
+/** A citation of one event: its number, with the event (and the words it quotes, highlighted) on
+ *  hover. Pressing it calls `onPick`. */
+export function Cite({ seq, quote = null, event, team, onPick }: { seq: number; quote?: string | null; event: GameEvent | undefined; team: Team; onPick: (seq: number) => void }) {
   const chip = useRef<HTMLButtonElement>(null);
   const card = useRef<HTMLSpanElement>(null);
   const hideTimer = useRef<number | undefined>(undefined);
@@ -102,7 +104,7 @@ function Cite({ seq, event, team, onPick }: { seq: number; event: GameEvent | un
       {event && (
         // React 18's types lack the `popover` attribute, so it goes in through a spread.
         <span ref={card} className={styles.pop} role="tooltip" {...({ popover: "manual" } as object)}>
-          {open && <Event e={event} team={team} showThinking />}
+          {open && <Event e={event} team={team} showThinking mark={quote} />}
         </span>
       )}
     </span>

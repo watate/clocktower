@@ -35,3 +35,4 @@
 
 .anchor { scroll-margin-top: 40px; }
 .anchor[data-focus="true"] { outline: 2px solid var(--accent, var(--chart-4)); outline-offset: -2px; border-radius: 2px; }
+.mark { background: color-mix(in srgb, var(--accent, var(--chart-4)) 28%, transparent); color: inherit; border-radius: 2px; padding: 0 1px; }

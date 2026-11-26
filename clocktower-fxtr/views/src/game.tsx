@@ -20,8 +20,8 @@ import { GAME, type GameData, type GameEvent, type SeatData } from "./types";
 import styles from "./game.module.css";
 
 /** The game's panel. A link that binds `event` (an event's seq) opens the game scrolled to that
- *  event, and marks it. */
-export const GAME_PANEL = declareView(EntityPanel, GAME, "clocktower-fxtr.GamePanel", { params: ["event"] });
+ *  event, and marks it; one that also binds `quote` (words of that event) highlights them. */
+export const GAME_PANEL = declareView(EntityPanel, GAME, "clocktower-fxtr.GamePanel", { params: ["event", "quote"] });
 
 export const TEAM_COLOR = { good: "var(--chart-1)", evil: "var(--chart-8)" } as const;
 
@@ -79,18 +79,34 @@ function List({ items, team }: { items: readonly string[]; team: Map<string, "go
   );
 }
 
-function Line({ kind, children, text }: { kind: string; children: ReactNode; text?: string }) {
+/** `text` with the first place it holds `mark` highlighted. */
+export function Marked({ text, mark }: { text: string; mark?: string | null | undefined }) {
+  const at = mark ? text.indexOf(mark) : -1;
+  if (!mark || at < 0) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, at)}
+      <mark className={styles.mark}>{mark}</mark>
+      {text.slice(at + mark.length)}
+    </>
+  );
+}
+
+function TextLine({ kind, children, text, mark }: { kind: string; children: ReactNode; text?: string | undefined; mark?: string | null | undefined }) {
   return (
     <div className={styles.event} data-kind={kind}>
       <div className={styles.lead}>{children}</div>
-      {text ? <div className={styles.text}>{text}</div> : null}
+      {text ? <div className={styles.text}><Marked text={text} mark={mark} /></div> : null}
     </div>
   );
 }
 
-export function Event({ e, team, showThinking }: { e: GameEvent; team: Map<string, "good" | "evil">; showThinking: boolean }) {
+/** One event as the reader shows it. `mark` is words of the event to highlight, such as the words
+ *  a summary's citation quotes. */
+export function Event({ e, team, showThinking, mark = null }: { e: GameEvent; team: Map<string, "good" | "evil">; showThinking: boolean; mark?: string | null }) {
   const d = e.data;
   const N = (n: unknown) => <Name name={str(n)} team={team} />;
+  const Line = (props: { kind: string; children: ReactNode; text?: string }) => <TextLine {...props} mark={mark} />;
   switch (e.kind) {
     case "say":
       return <Line kind="say" text={str(d["text"])}>{N(d["speaker"])}</Line>;
@@ -107,7 +123,7 @@ export function Event({ e, team, showThinking }: { e: GameEvent; team: Map<strin
           <summary>
             {N(d["player"])} <span className={styles.dim}>thinks · {str(d["kind"])} · {text.split(/\s+/).filter(Boolean).length} words</span>
           </summary>
-          <div className={styles.text}>{text}</div>
+          <div className={styles.text}><Marked text={text} mark={mark} /></div>
         </details>
       );
     }
@@ -236,6 +252,7 @@ export function GameResult({ game }: { game: GameData }) {
 export function GamePanel({ id, storage, params }: ViewProps<typeof GAME_PANEL>) {
   const game = unwrap(useEntity(id as EntityID<GameData>));
   const focus = typeof params?.event === "number" ? params.event : null;
+  const quote = typeof params?.quote === "string" ? params.quote : null;
   return (
     <div className={layout.panel}>
       <div className={layout.kindLine}>
@@ -243,7 +260,7 @@ export function GamePanel({ id, storage, params }: ViewProps<typeof GAME_PANEL>)
       </div>
       <div className={layout.title}>{game.game_id}</div>
       <GameResult game={game} />
-      <GameReader game={game} storage={storage} focus={focus} />
+      <GameReader game={game} storage={storage} focus={focus} quote={quote} />
     </div>
   );
 }
@@ -260,8 +277,8 @@ function centreInPane(element: HTMLElement): void {
 }
 
 /** The seats and every event of a game, with the reader's controls. `focus` is an event's seq to
- *  scroll to and mark (shown whatever the filters hide). */
-export function GameReader({ game, storage, focus = null }: { game: GameData; storage: EntityPanelProps["storage"]; focus?: number | null }) {
+ *  scroll to and mark (shown whatever the filters hide), and `quote` words of it to highlight. */
+export function GameReader({ game, storage, focus = null, quote = null }: { game: GameData; storage: EntityPanelProps["storage"]; focus?: number | null; quote?: string | null }) {
   const team = teamsOf(game);
   const [view, setView] = useStoredState<string>(storage, "view", EVERYONE);
   const [show, setShow] = useStoredState<Show>(storage, "show", "all", (v): v is Show => v === "all" || v === "talk");
@@ -281,7 +298,7 @@ export function GameReader({ game, storage, focus = null }: { game: GameData; st
     scroll();
     const timers = [50, 200, 500].map((delay) => setTimeout(scroll, delay));
     return () => timers.forEach(clearTimeout);
-  }, [focus]);
+  }, [focus, quote]);
 
   const events = game.events.filter((e) => {
     if (e.seq === focus) return true;
@@ -340,7 +357,7 @@ export function GameReader({ game, storage, focus = null }: { game: GameData; st
             <div className={styles.header}>{s.title}</div>
             {s.events.map((e) => (
               <div key={e.seq} ref={e.seq === focus ? focused : undefined} className={styles.anchor} data-focus={e.seq === focus}>
-                <Event e={e} team={team} showThinking={thinking === "open" || e.seq === focus} />
+                <Event e={e} team={team} showThinking={thinking === "open" || e.seq === focus} mark={e.seq === focus ? quote : null} />
               </div>
             ))}
           </section>

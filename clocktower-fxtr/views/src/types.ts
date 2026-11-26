@@ -99,3 +99,26 @@ export interface GameSummaryData extends EntityData {
   readonly output_tokens: number;
   readonly cost_usd: number | null;
 }
+
+export const CITED_SUMMARY = "local.clocktower_fxtr.CitedSummary.v1";
+export const CITED_SUMMARIES_WORKFLOW = "clocktower.cited_summaries";
+
+/** A piece of a claim: text, or a citation of an event (`event`) and the words it quotes. */
+export type PartData = { readonly text: string; readonly event: number | null; readonly quote: string | null };
+
+export interface CitedSummaryData extends EntityData {
+  readonly game: EntityID<GameData>;
+  readonly judgment: EntityID;
+  readonly why_picked: string;
+  readonly model: string;
+  readonly headline: readonly PartData[];
+  readonly story: readonly { readonly title: string; readonly claims: readonly (readonly PartData[])[] }[];
+  readonly decisive: readonly (readonly PartData[])[];
+  readonly notable: readonly (readonly PartData[])[];
+  readonly answers: number;
+  readonly input_tokens: number;
+  readonly cache_read_tokens: number;
+  readonly cache_write_tokens: number;
+  readonly output_tokens: number;
+  readonly cost_usd: number | null;
+}
